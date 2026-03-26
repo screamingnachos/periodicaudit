@@ -40,18 +40,18 @@ export default function Home() {
   const [storeName, setStoreName] = useState('');
   const [openingDate, setOpeningDate] = useState('');
   const [calendarEmail, setCalendarEmail] = useState('');
-  const [previewDates, setPreviewDates] = useState([]);
+  const [previewDates, setPreviewDates] = useState<string[]>([]);
 
   // Bulk Upload State
   const [isDragging, setIsDragging] = useState(false);
-  const [parsedCsvData, setParsedCsvData] = useState([]);
+  const [parsedCsvData, setParsedCsvData] = useState<any[]>([]);
 
   // Master View Data State
-  const [scheduledAudits, setScheduledAudits] = useState([]);
+  const [scheduledAudits, setScheduledAudits] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Edit Modal State
-  const [editingAudit, setEditingAudit] = useState(null);
+  const [editingAudit, setEditingAudit] = useState<any | null>(null);
   const [newAuditDate, setNewAuditDate] = useState('');
 
   // Instantly update the single entry preview
