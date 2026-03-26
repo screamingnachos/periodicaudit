@@ -31,6 +31,23 @@ function calculateAuditDates(openingDateString: string): string[] {
   return audits;
 }
 
+// Generates a foolproof Google Calendar template URL
+function createCalendarLink(storeName: string, dateString: string) {
+  // Google requires dates in YYYYMMDD format
+  const start = dateString.replace(/-/g, '');
+  
+  // For all-day events, Google needs the end date to be the next day
+  const d = new Date(dateString);
+  d.setDate(d.getDate() + 1);
+  const end = d.toISOString().split('T')[0].replace(/-/g, '');
+  
+  const text = encodeURIComponent(`SuperK Audit: ${storeName}`);
+  const details = encodeURIComponent(`Quarterly store audit mapped via operations portal.`);
+  const recur = encodeURIComponent(`RRULE:FREQ=MONTHLY;INTERVAL=3;COUNT=8`);
+  
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${end}&details=${details}&recur=${recur}`;
+}
+
 export default function Home() {
   // Navigation State
   const [activeTab, setActiveTab] = useState<'master' | 'add'>('master'); 
@@ -254,14 +271,22 @@ export default function Home() {
                           <span className="text-[10px] bg-neutral-200 text-neutral-600 px-1.5 py-0.5 rounded tracking-wide uppercase">Modified</span>
                         )}
                       </td>
-                      <td className="py-4 text-right">
-                        <button 
-                          onClick={() => handleEditClick(audit)}
-                          className="text-xs uppercase tracking-widest border border-neutral-300 px-3 py-1 hover:bg-neutral-900 hover:text-white transition-colors"
-                        >
-                          Edit
-                        </button>
-                      </td>
+                      <td className="py-4 text-right flex justify-end gap-2">
+  <a 
+    href={createCalendarLink(audit.stores?.store_name || 'Store', audit.scheduled_date)}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="text-xs uppercase tracking-widest border border-blue-200 bg-blue-50 text-blue-700 px-3 py-1 hover:bg-blue-100 transition-colors"
+  >
+    Add to Cal
+  </a>
+  <button 
+    onClick={() => handleEditClick(audit)}
+    className="text-xs uppercase tracking-widest border border-neutral-300 px-3 py-1 hover:bg-neutral-900 hover:text-white transition-colors"
+  >
+    Edit
+  </button>
+</td>
                     </tr>
                   ))
                 )}
