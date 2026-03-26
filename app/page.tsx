@@ -188,7 +188,8 @@ export default function Home() {
       Papa.parse(file, {
         header: true, skipEmptyLines: true,
         complete: (results) => {
-          const dataWithPreviews = results.data.map(row => ({
+          // ADDED (row: any) right here 👇
+          const dataWithPreviews = results.data.map((row: any) => ({
             ...row,
             firstAudit: calculateAuditDates(row['Opening Date'])[0] || 'Invalid Date'
           }));
