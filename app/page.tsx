@@ -1,10 +1,10 @@
 "use client";
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse'; 
 import { supabase } from '@/utils/supabase'; 
 
 // The bulletproof standardized date calculation formula
-function calculateAuditDates(openingDateString: string) {
+function calculateAuditDates(openingDateString: string): string[] {
   if (!openingDateString || !openingDateString.includes('-')) return [];
   
   const parts = openingDateString.split('-');
@@ -12,7 +12,7 @@ function calculateAuditDates(openingDateString: string) {
   const startMonth = parseInt(parts[1], 10) - 1; 
   const startDay = parseInt(parts[2], 10);
 
-  const audits = [];
+  const audits: string[] = [];
 
   for (let i = 0; i < 8; i++) {
     const targetDate = new Date(startYear, startMonth + ((i + 1) * 3), 1);
@@ -33,26 +33,26 @@ function calculateAuditDates(openingDateString: string) {
 
 export default function Home() {
   // Navigation State
-  const [activeTab, setActiveTab] = useState('master'); 
-  const [entryMode, setEntryMode] = useState('single'); 
+  const [activeTab, setActiveTab] = useState<'master' | 'add'>('master'); 
+  const [entryMode, setEntryMode] = useState<'single' | 'bulk'>('single'); 
 
   // Single Entry State
-  const [storeName, setStoreName] = useState('');
-  const [openingDate, setOpeningDate] = useState('');
-  const [calendarEmail, setCalendarEmail] = useState('');
+  const [storeName, setStoreName] = useState<string>('');
+  const [openingDate, setOpeningDate] = useState<string>('');
+  const [calendarEmail, setCalendarEmail] = useState<string>('');
   const [previewDates, setPreviewDates] = useState<string[]>([]);
 
   // Bulk Upload State
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   const [parsedCsvData, setParsedCsvData] = useState<any[]>([]);
 
   // Master View Data State
   const [scheduledAudits, setScheduledAudits] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Edit Modal State
   const [editingAudit, setEditingAudit] = useState<any | null>(null);
-  const [newAuditDate, setNewAuditDate] = useState('');
+  const [newAuditDate, setNewAuditDate] = useState<string>('');
 
   // Instantly update the single entry preview
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function Home() {
       if (error) {
         console.error("Error fetching audits:", error);
       } else {
-        setScheduledAudits(data);
+        setScheduledAudits(data || []);
       }
       setIsLoading(false);
     }
@@ -95,18 +95,17 @@ export default function Home() {
   // --- Edit Handlers ---
   const handleEditClick = (audit: any) => {
     setEditingAudit(audit);
-    setNewAuditDate(audit.scheduled_date); // Pre-fill with current date
+    setNewAuditDate(audit.scheduled_date); 
   };
 
   const handleSaveEdit = async () => {
     if (!newAuditDate || !editingAudit) return;
 
-    // Update the record in Supabase
     const { error } = await supabase
       .from('audits')
       .update({ 
         scheduled_date: newAuditDate, 
-        is_overridden: true // Flag it so we know it was manually changed
+        is_overridden: true 
       })
       .eq('id', editingAudit.id);
 
@@ -116,14 +115,12 @@ export default function Home() {
       return;
     }
 
-    // Update the local state so the table refreshes instantly without a page reload
     setScheduledAudits(prev => prev.map(a => 
       a.id === editingAudit.id 
         ? { ...a, scheduled_date: newAuditDate, is_overridden: true } 
         : a
     ));
 
-    // Close Modal
     setEditingAudit(null);
     setNewAuditDate('');
   };
@@ -153,7 +150,7 @@ export default function Home() {
 
   const handleBulkSubmit = async () => {
     const payload = {
-      stores: parsedCsvData.map(row => ({
+      stores: parsedCsvData.map((row: any) => ({
         storeName: row['Store Name'],
         openingDate: row['Opening Date'],
         calendarEmail: row['Calendar Email']
@@ -180,18 +177,17 @@ export default function Home() {
 
   // Drag and Drop Logic
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
-  const handleDragLeave = () => { setIsDragging(false); };
+  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); };
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault(); setIsDragging(false);
-    const file = e.dataTransfer.files[0];
+    const file = e.dataTransfer.files?.[0];
     if (file && file.type === "text/csv") {
       Papa.parse(file, {
         header: true, skipEmptyLines: true,
         complete: (results) => {
-          // ADDED (row: any) right here 👇
           const dataWithPreviews = results.data.map((row: any) => ({
             ...row,
-            firstAudit: calculateAuditDates(row['Opening Date'])[0] || 'Invalid Date'
+            firstAudit: calculateAuditDates(row['Opening Date'] || '')[0] || 'Invalid Date'
           }));
           setParsedCsvData(dataWithPreviews);
         }
@@ -244,9 +240,9 @@ export default function Home() {
               </thead>
               <tbody className="text-neutral-700">
                 {isLoading ? (
-                  <tr><td colSpan="4" className="py-8 text-center text-sm text-neutral-400">Loading schedule...</td></tr>
+                  <tr><td colSpan={4} className="py-8 text-center text-sm text-neutral-400">Loading schedule...</td></tr>
                 ) : scheduledAudits.length === 0 ? (
-                  <tr><td colSpan="4" className="py-8 text-center text-sm text-neutral-400">No audits scheduled yet.</td></tr>
+                  <tr><td colSpan={4} className="py-8 text-center text-sm text-neutral-400">No audits scheduled yet.</td></tr>
                 ) : (
                   scheduledAudits.map((audit) => (
                     <tr key={audit.id} className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors">
@@ -275,7 +271,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* --- TAB 2: ADD STORE (Unchanged) --- */}
+      {/* --- TAB 2: ADD STORE --- */}
       {activeTab === 'add' && (
         <div className="animate-in fade-in duration-500 grid grid-cols-1 md:grid-cols-5 gap-12">
           
