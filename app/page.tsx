@@ -4,7 +4,7 @@ import Papa from 'papaparse';
 import { supabase } from '@/utils/supabase'; 
 
 // The bulletproof standardized date calculation formula
-function calculateAuditDates(openingDateString) {
+function calculateAuditDates(openingDateString: string) {
   if (!openingDateString || !openingDateString.includes('-')) return [];
   
   const parts = openingDateString.split('-');
@@ -93,7 +93,7 @@ export default function Home() {
   }, [activeTab]);
 
   // --- Edit Handlers ---
-  const handleEditClick = (audit) => {
+  const handleEditClick = (audit: any) => {
     setEditingAudit(audit);
     setNewAuditDate(audit.scheduled_date); // Pre-fill with current date
   };
@@ -129,7 +129,7 @@ export default function Home() {
   };
 
   // --- API Submit Handlers ---
-  const handleSingleSubmit = async (e) => {
+  const handleSingleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = { stores: [{ storeName, openingDate, calendarEmail }] };
 
@@ -179,9 +179,9 @@ export default function Home() {
   };
 
   // Drag and Drop Logic
-  const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = () => { setIsDragging(false); };
-  const handleDrop = (e) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault(); setIsDragging(false);
     const file = e.dataTransfer.files[0];
     if (file && file.type === "text/csv") {
